@@ -1,4 +1,4 @@
-CLASS zcl_ewm_as_sr_mgr DEFINITION
+CLASS zcl_ewm_cfg_helper DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
