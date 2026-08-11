@@ -1,0 +1,68 @@
+CLASS zcl_ewm_as_sr_mgr DEFINITION
+  PUBLIC
+  CREATE PUBLIC.
+
+    "! Self-Healing der /PRIS-CFG fuer Daemon-Sessions: prueft wie
+    "! /PRIS/MAIN_CL_CFG-&gt;READ_DATA (Schritt 10), ob eine
+    "! Attributdefinition juenger ist als der letzte Wertupdate-Lauf,
+    "! und zieht den Update dann SYNCHRON per sRFC nach
+    "! (/PRIS/MAIN_CFG_RFC_UPD_VALUES, committet selbst). Danach nimmt
+    "! INITIALIZE im Daemon den RETURN-Zweig statt des verbotenen
+    "! CALL FUNCTION IN BACKGROUND TASK.
+    "! Der Check ist bewusst global (nicht je PROGNAME) - konservativ,
+    "! ein unnoetiger Update-Lauf ist billig und idempotent.
+    "! Benoetigt S_RFC fuer FUGR /PRIS/MAIN_CFG_RFC.
+    "! @parameter ef_refreshed | abap_true = Update wurde nachgezogen
+    "! @parameter ef_error | RFC-Fehlertext (Update NICHT nachgezogen -
+    "!   der naechste INITIALIZE kann im Daemon dumpen; das ADF startet
+    "!   dann neu und der naechste Aufruf heilt erneut)
+    CLASS-METHODS ensure_cfg_fresh
+      EXPORTING ef_refreshed TYPE abap_bool
+                ef_error     TYPE string.
+
+ENDCLASS.
+
+CLASS zcl_ewm_as_sr_mgr IMPLEMENTATION.
+  METHOD ensure_cfg_fresh.
+    DATA lf_ch_at  TYPE /pris/main_de_changed_tstmp.
+    DATA lf_stale  TYPE i.
+    DATA lf_rfcmsg TYPE c LENGTH 255.
+
+    CLEAR: ef_refreshed, ef_error.
+
+    " Stale-Check identisch zum Framework: Update-Lauf-Zeitstempel
+    " gegen die Aenderungszeitpunkte der Attributdefinitionen
+    SELECT SINGLE changed_at FROM /pris/cfg_fchg
+      INTO @lf_ch_at.
+    IF sy-subrc <> 0.
+      CLEAR lf_ch_at.
+    ENDIF.
+
+    IF lf_ch_at IS NOT INITIAL.
+      SELECT COUNT(*) FROM /pris/cfg_sad
+        WHERE changed_at >= @lf_ch_at
+        INTO @lf_stale.
+      IF sy-subrc <> 0 OR lf_stale = 0.
+        RETURN.   " frisch - INITIALIZE nimmt den RETURN-Zweig
+      ENDIF.
+    ENDIF.
+
+    " Synchron nachziehen: sRFC ist in ABAP-Daemon-Sessions erlaubt
+    " (im Gegensatz zu CALL FUNCTION IN BACKGROUND TASK); der FB
+    " committet selbst (update_all iv_commit = abap_true)
+    CALL FUNCTION '/PRIS/MAIN_CFG_RFC_UPD_VALUES'
+      DESTINATION 'NONE'
+      EXCEPTIONS
+        system_failure        = 1 MESSAGE lf_rfcmsg
+        communication_failure = 2 MESSAGE lf_rfcmsg
+        OTHERS                = 3.
+    IF sy-subrc = 0.
+      ef_refreshed = abap_true.
+    ELSE.
+      ef_error = condense( |{ lf_rfcmsg }| ).
+      IF ef_error IS INITIAL.
+        ef_error = |/PRIS/MAIN_CFG_RFC_UPD_VALUES sy-subrc { sy-subrc }|.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.
