@@ -1,0 +1,25 @@
+CLASS zcl_ewm_mfs_helper DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+    CLASS-METHODS get_log_object
+      IMPORTING iv_lgnum TYPE /scwm/lgnum
+      RETURNING VALUE(ro_log) TYPE REF TO /pris/ewm_cl_applog.
+
+CLASS zcl_ewm_mfs_helper IMPLEMENTATION.
+
+  METHOD get_log_object.
+
+    DATA lv_extnumber TYPE balnrext.
+
+    CONCATENATE siv_lgnum
+                INTO lv_extnumber SEPARATED BY space.
+
+    ro_log = NEW #( iv_lgnum     = iv_lgnum
+                    iv_object    = wmegc_apl_object_wme
+                    iv_subobject = wmegc_apl_subob_mfs
+                    iv_extnumber = lf_extnumber ).
+  ENDMETHOD.
+
+ENDCLASS.
