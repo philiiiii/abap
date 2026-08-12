@@ -2,20 +2,6 @@ CLASS zcl_ewm_cfg_helper DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
-    "! Self-Healing der /PRIS-CFG fuer Daemon-Sessions: prueft wie
-    "! /PRIS/MAIN_CL_CFG-&gt;READ_DATA (Schritt 10), ob eine
-    "! Attributdefinition juenger ist als der letzte Wertupdate-Lauf,
-    "! und zieht den Update dann SYNCHRON per sRFC nach
-    "! (/PRIS/MAIN_CFG_RFC_UPD_VALUES, committet selbst). Danach nimmt
-    "! INITIALIZE im Daemon den RETURN-Zweig statt des verbotenen
-    "! CALL FUNCTION IN BACKGROUND TASK.
-    "! Der Check ist bewusst global (nicht je PROGNAME) - konservativ,
-    "! ein unnoetiger Update-Lauf ist billig und idempotent.
-    "! Benoetigt S_RFC fuer FUGR /PRIS/MAIN_CFG_RFC.
-    "! @parameter ef_refreshed | abap_true = Update wurde nachgezogen
-    "! @parameter ef_error | RFC-Fehlertext (Update NICHT nachgezogen -
-    "!   der naechste INITIALIZE kann im Daemon dumpen; das ADF startet
-    "!   dann neu und der naechste Aufruf heilt erneut)
     CLASS-METHODS ensure_cfg_fresh
       EXPORTING ef_refreshed TYPE abap_bool
                 ef_error     TYPE string.
