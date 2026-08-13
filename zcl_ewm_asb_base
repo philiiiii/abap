@@ -23,4 +23,23 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_storage_type.
+    DATA lv_msg TYPE string.
+
+    mo_log->add_program_info( ).
+
+    TRY.
+        rf_storage_type = it_huhdr[ 1 ]-lgtyp.
+
+        " 'HU Lagertyp: <&1>'
+        MESSAGE i088(zewm_ext) WITH rf_storage_type INTO lv_msg.
+        mo_log->add_message( ).
+
+      CATCH cx_sy_itab_line_not_found.
+        CLEAR rf_storage_type.
+    ENDTRY.
+
+    mo_log->add_program_info( iv_end = abap_true ).
+
+  ENDMETHOD.
 ENDCLASS.
