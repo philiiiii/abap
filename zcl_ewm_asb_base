@@ -15,6 +15,11 @@ CLASS zcl_ewm_asb_base DEFINITION
       RETURNING VALUE(rf_storage_type) TYPE /scwm/de_lgtyp
       RAISING /pris/cx_ewm_asd_base.
 
+    METHODS get_pmat_top
+      IMPORTING if_bin_id          TYPE string
+                it_huhdr           TYPE /scwm/tt_huhdr_int
+      RETURNING VALUE(rf_pmat_top) TYPE /scwm/de_pmat.
+
 ENDCLASS.
 
 CLASS zcl_ewm_asb_base IMPLEMENTATION.
@@ -37,6 +42,27 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
 
       CATCH cx_sy_itab_line_not_found.
         CLEAR rf_storage_type.
+    ENDTRY.
+
+    mo_log->add_program_info( iv_end = abap_true ).
+  ENDMETHOD.
+
+  METHOD get_pmat_top.
+    DATA lv_msg TYPE string.
+
+    mo_log->add_program_info( ).
+
+    TRY.
+        rf_pmat_top = it_huhdr[ huident = if_bin_id ]-pmat.
+
+        " 'Packmaterial Top-HU: <&1>'
+        MESSAGE i089(zewm_ext) WITH rf_pmat_top INTO lv_msg.
+        mo_log->add_message( ).
+
+      CATCH cx_sy_itab_line_not_found.
+        " 'HU <&1> nicht gefunden.'
+        MESSAGE e090(zewm_ext) WITH if_bin_id INTO lv_msg.
+        mo_log->add_message( ).
     ENDTRY.
 
     mo_log->add_program_info( iv_end = abap_true ).
