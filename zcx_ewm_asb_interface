@@ -28,8 +28,12 @@ CLASS zcx_ewm_asb_interface IMPLEMENTATION.
     mv_lgnum   = iv_lgnum.
     mv_lgtyp   = iv_lgtyp.
 
-
-
+    CLEAR me->textid.
+    IF textid is initial.
+      if_t100_message~t100key = zcx_ewm_asb_interface.
+    ELSE.
+      if_t100_message~t100key = textid.
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
