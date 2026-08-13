@@ -29,7 +29,7 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_storage_type.
-    DATA lv_msg TYPE string.
+    DATA lv_msg TYPE string ##NEEDED.
 
     mo_log->add_program_info( ).
 
@@ -37,7 +37,7 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
         rf_storage_type = it_huhdr[ 1 ]-lgtyp.
 
         " 'HU Lagertyp: <&1>'
-        MESSAGE i088(zewm_ext) WITH rf_storage_type INTO lv_msg.
+        MESSAGE i088(zewm_prismat_ext) WITH rf_storage_type INTO lv_msg.
         mo_log->add_message( ).
 
       CATCH cx_sy_itab_line_not_found.
@@ -48,7 +48,7 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_pmat_top.
-    DATA lv_msg TYPE string.
+    DATA lv_msg TYPE string ##NEEDED.
 
     mo_log->add_program_info( ).
 
@@ -56,16 +56,15 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
         rf_pmat_top = it_huhdr[ huident = if_bin_id ]-pmat.
 
         " 'Packmaterial Top-HU: <&1>'
-        MESSAGE i089(zewm_ext) WITH rf_pmat_top INTO lv_msg.
+        MESSAGE i089(zewm_prismat_ext) WITH rf_pmat_top INTO lv_msg.
         mo_log->add_message( ).
 
       CATCH cx_sy_itab_line_not_found.
         " 'HU <&1> nicht gefunden.'
-        MESSAGE e090(zewm_ext) WITH if_bin_id INTO lv_msg.
+        MESSAGE e090(zewm_prismat_ext) WITH if_bin_id INTO lv_msg.
         mo_log->add_message( ).
     ENDTRY.
 
     mo_log->add_program_info( iv_end = abap_true ).
-
   ENDMETHOD.
 ENDCLASS.
