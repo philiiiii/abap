@@ -42,7 +42,7 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
         rf_storage_type = it_huhdr[ 1 ]-lgtyp.
 
         " 'HU Lagertyp: <&1>'
-        MESSAGE i088(zewm_prismat_ext) WITH rf_storage_type INTO lv_msg.
+        MESSAGE i088(zewm_ext) WITH rf_storage_type INTO lv_msg.
         mo_log->add_message( ).
 
       CATCH cx_sy_itab_line_not_found.
@@ -61,12 +61,12 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
         rf_pmat_top = it_huhdr[ huident = if_bin_id ]-pmat.
 
         " 'Packmaterial Top-HU: <&1>'
-        MESSAGE i089(zewm_prismat_ext) WITH rf_pmat_top INTO lv_msg.
+        MESSAGE i089(zewm_ext) WITH rf_pmat_top INTO lv_msg.
         mo_log->add_message( ).
 
       CATCH cx_sy_itab_line_not_found.
         " 'HU <&1> nicht gefunden.'
-        MESSAGE e090(zewm_prismat_ext) WITH if_bin_id INTO lv_msg.
+        MESSAGE e090(zewm_ext) WITH if_bin_id INTO lv_msg.
         mo_log->add_message( ).
     ENDTRY.
 
@@ -85,13 +85,13 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
 
         IF lt_huhdr IS INITIAL.
           " 'HU <&1> hat keine Sub-HU's.'
-          MESSAGE i092(zewm_prismat_ext) WITH if_bin_id INTO lv_msg.
+          MESSAGE i092(zewm_ext) WITH if_bin_id INTO lv_msg.
         ENDIF.
 
         rf_pmat_top = it_huhdr[ huident = if_bin_id ]-pmat.
 
         " 'Packmaterial Sub-HU: <&1>'
-        MESSAGE i091(zewm_prismat_ext) WITH rf_pmat_top INTO lv_msg.
+        MESSAGE i091(zewm_ext) WITH rf_pmat_top INTO lv_msg.
         mo_log->add_message( ).
 
       CATCH cx_sy_itab_line_not_found.
@@ -103,3 +103,28 @@ CLASS zcl_ewm_asb_base IMPLEMENTATION.
     mo_log->add_program_info( iv_end = abap_true ).
   ENDMETHOD.
 ENDCLASS.
+
+  METHOD read_content_code.
+    mo_log->add_program_info( ).
+
+    DATA(lv_lgtyp) = get_storage_type( it_huhdr ).
+    DATA(lv_pmat_top) = get_pmat_top( if_bin_id = if_bin_id
+                                      it_huhdr  = it_huhdr ).
+    DATA(lv_pmat_sub) = get_pmat_sub( if_bin_id = if_bin_id
+                                      it_huhdr  = it_huhdr ).
+
+    DATA(lf_nof_sub_hus) = lines( it_huhdr ).
+    DATA(lf_nof_pos) = lines( it_huitm ).
+
+    SELECT SINGLE FROM zewm_asb_ccode
+      FIELDS *
+      WHERE lgnum             = @mv_lgnum
+        AND lgtyp             = @lv_lgtyp
+        AND pmat_top_hu       = @lv_pmat_top
+        AND pmat_sub_hu       = @lv_pmat_sub
+        AND num_sub_hu_total  = @lf_nof_sub_hus
+        AND num_sub_hu_filled = @lf_nof_pos
+      INTO CORRESPONDING FIELDS OF @rs_ccode.
+
+    mo_log->add_program_info( iv_end = abap_true ).
+  ENDMETHOD.
