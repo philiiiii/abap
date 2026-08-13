@@ -7,7 +7,7 @@ CLASS zcl_ewm_asb_base DEFINITION
       IMPORTING iv_bin_id   TYPE string
                 iv_x_row    TYPE zewm_de_transf_row
                 iv_y_column TYPE zewm_de_transf_column
-      RAISING   /pris/cx_ewm_asb_interface.
+      RAISING   zcx_ewm_asb_interface.
 
 ENDCLASS.
 
