@@ -1,0 +1,20 @@
+CLASS zcl_ewm_asb_base DEFINITION
+  PUBLIC
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    METHODS port_bin_ready
+      IMPORTING iv_bin_id   TYPE string
+                iv_x_row    TYPE zewm_de_transf_row
+                iv_y_column TYPE zewm_de_transf_column
+      RAISING   /pris/cx_ewm_asb_interface.
+
+ENDCLASS.
+
+CLASS zcl_ewm_asb_base IMPLEMENTATION.
+
+  METHOD port_bin_ready.
+
+  ENDMETHOD.
+
+ENDCLASS.
