@@ -9,6 +9,12 @@ CLASS zcl_ewm_asb_base DEFINITION
                 iv_y_column TYPE zewm_de_transf_column
       RAISING   zcx_ewm_asb_interface.
 
+  PROTECTED SECTION.
+    METHODS get_storage_type
+      IMPORTING it_huhdr               TYPE /scwm/tt_huhdr_int
+      RETURNING VALUE(rf_storage_type) TYPE /scwm/de_lgtyp
+      RAISING /pris/cx_ewm_asd_base.
+
 ENDCLASS.
 
 CLASS zcl_ewm_asb_base IMPLEMENTATION.
