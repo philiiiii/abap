@@ -7,10 +7,29 @@ CLASS zcx_ewm_asb_interface DEFINITION
     INTERFACES if_t100_message.
     INTERFACES if_t100_dyn_msg.
 
+    DATA mv_tabname TYPE tabname16.
+    DATA mv_lgnum   TYPE /scwm/lgnum.
+    DATA mv_lgtyp   TYPE /scwm/de_lgtyp.
+
     METHODS constructor
       IMPORTING textid     LIKE if_t100_message=>t100key OPTIONAL
                 previous   LIKE previous OPTIONAL
-                mv_tabname TYPE tabname16 OPTIONAL
-                mv_lgnum   TYPE /scwm/lgnum OPTIONAL
-                mv_lgtyp   TYPE /scwm/lgtyp OPTIONAL.
+                iv_tabname TYPE tabname16 OPTIONAL
+                iv_lgnum   TYPE /scwm/lgnum OPTIONAL
+                iv_lgtyp   TYPE /scwm/lgtyp OPTIONAL.
+ENDCLASS.
+
+CLASS zcx_ewm_asb_interface IMPLEMENTATION.
+
+  METHOD constructor.
+    super->constructor( previous = previous ).
+
+    mv_tabname = iv_tabname.
+    mv_lgnum   = iv_lgnum.
+    mv_lgtyp   = iv_lgtyp.
+
+
+
+  ENDMETHOD.
+
 ENDCLASS.
