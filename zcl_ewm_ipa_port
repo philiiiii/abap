@@ -1,0 +1,8 @@
+CLASS zcl_ewm_ipa_port DEFINITION
+  PUBLIC CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES zif_ewm_ipa_port.
+
+    METHODS constructor IMPORTING if_lgnum TYPE /scwm/lgnum
+                                  io_log   TYPE REF TO zcl_ewm_applog.
