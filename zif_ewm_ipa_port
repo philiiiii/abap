@@ -1,0 +1,45 @@
+INTERFACE zif_ewm_ipa_port
+  PUBLIC.
+
+  CONSTANTS gc_bin_open TYPE char20 VALUE 'OPEN'.
+
+  TYPES:
+    BEGIN OF ts_bin,
+      bin_id  TYPE /scwm/de_huident,
+      state   TYPE char1,
+      task_id TYPE /scwm/tanum,
+    END OF ts_bin.
+
+  METHODS open_port
+    IMPORTING if_lgnum    TYPE /scwm/lgnum
+              if_port_id  TYPE zewm_de_ipa_port_id
+              if_category TYPE zewm_de_ipa_category OPTIONAL
+              if_content  TYPE zewm_de_ipa_content OPTIONAL
+    RAISING   zcx_ewm_ipa.
+
+  METHODS open_bin
+    IMPORTING if_lgnum      TYPE /scwm/lgnum
+              if_port_id    TYPE zewm_ipa_port_id
+    RETURNING VALUE(rs_bin) TYPE ts_bin
+    RAISING   zcx_ewm_ipa.
+
+  METHODS get_bin_state
+    IMPORTING if_lgnum        TYPE /scwm/lgnum
+              if_port_id      TYPE zewm_ipa_port_id
+              if_bin_id       TYPE /scwm/de_huident
+    RETURNING VALUE(rf_state) TYPE char20
+    RAISING   zcx_ewm_ipa.
+
+  METHODS close_bin
+    IMPORTING if_lgnum   TYPE /scwm/lgnum
+              if_port_id TYPE zewm_ipa_port_id
+              if_bin_id  TYPE /scwm/de_huident
+              if_task_id TYPE /scwm/tanum OPTIONAL
+              if_content TYPE zewm_ipa_content OPTIONAL
+    RAISING   zcx_ewm_ipa.
+
+  METHODS close_port
+    IMPORTING if_lgnum   TYPE /scwm/lgnum
+              if_port_id TYPE zewm_ipa_port_id
+    RAISING   zcx_ewm_ipa.
+ENDINTERFACE.
