@@ -4,23 +4,45 @@ CLASS zcx_ewm_ipa DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    DATA mf_as_err_code TYPE zewm_ipa_as_err_code READ-ONLY.
-    DATA mf_as_err_info TYPE zewm_ipa_as_err_info READ-ONLY.
+    DATA mv_as_err_code TYPE zewm_ipa_as_err_code READ-ONLY.
+    DATA mv_as_err_info TYPE zewm_ipa_as_err_info READ-ONLY.
 
     METHODS constructor
       IMPORTING textid         LIKE if_t100_message=>t100key OPTIONAL
                 previous       TYPE REF TO cx_root OPTIONAL
-                if_as_err_code TYPE zewm_ipa_as_err_code OPTIONAL
-                if_as_err_info TYPE zewm_ipa_as_err_info OPTIONAL.
+                iv_as_err_code TYPE zewm_ipa_as_err_code OPTIONAL
+                iv_as_err_info TYPE zewm_ipa_as_err_info OPTIONAL.
 
     CLASS-METHODS raise
       IMPORTING
-        !if_msgid TYPE sy-msgid DEFAULT sy-msgid
-        !if_msgty TYPE sy-msgty DEFAULT sy-msgty
-        !if_msgno TYPE sy-msgno DEFAULT sy-msgno
-        !if_msgv1 TYPE sy-msgv1 DEFAULT sy-msgv1
-        !if_msgv2 TYPE sy-msgv2 DEFAULT sy-msgv2
-        !if_msgv3 TYPE sy-msgv3 DEFAULT sy-msgv3
-        !if_msgv4 TYPE sy-msgv4 DEFAULT sy-msgv4
+        !iv_msgid TYPE sy-msgid DEFAULT sy-msgid
+        !iv_msgty TYPE sy-msgty DEFAULT sy-msgty
+        !iv_msgno TYPE sy-msgno DEFAULT sy-msgno
+        !iv_msgv1 TYPE sy-msgv1 DEFAULT sy-msgv1
+        !iv_msgv2 TYPE sy-msgv2 DEFAULT sy-msgv2
+        !iv_msgv3 TYPE sy-msgv3 DEFAULT sy-msgv3
+        !iv_msgv4 TYPE sy-msgv4 DEFAULT sy-msgv4
       RAISING
         zcx_ewm_ipa.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS zcx_ewm_ipa IMPLEMENTATION.
+
+  METHOD constructor.
+    super->constructor( textid = textid previous = previous ).
+    mv_as_err_code = iv_as_err_code.
+    mv_as_err_info = iv_as_err_info.
+  ENDMETHOD.
+
+  METHOD raise.
+    RAISE EXCEPTION TYPE zcx_ewm_ipa
+      MESSAGE ID iv_msgid
+      TYPE iv_msgty
+      NUMBER iv_msgno
+      WITH iv_msgv1 iv_msgv2 iv_msgv3 iv_msgv4.
+  ENDMETHOD.
+
+ENDCLASS.
