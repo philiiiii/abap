@@ -1,0 +1,1611 @@
+CLASS zcl_ewm_applog DEFINITION
+  PUBLIC
+  INHERITING FROM /scwm/cl_log
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    TYPE-POOLS abap.
+
+    CONSTANTS mc_balobj            TYPE balobj_d    VALUE 'ZEWM' ##NO_TEXT.
+    CONSTANTS mc_checkpoint_group  TYPE aab_id_name VALUE 'ZEWM_APPLOG_STRUCT' ##NO_TEXT.
+    CONSTANTS mc_days_until_delete TYPE anzdays     VALUE 7 ##NO_TEXT.
+    CONSTANTS msgty_exception      TYPE char1       VALUE 'X' ##NO_TEXT.
+
+    DATA mo_ewm_log                 TYPE REF TO /pris/ewm_cl_log READ-ONLY.
+    DATA mt_protocol_all_msg        TYPE bapirettab              READ-ONLY.
+    DATA mv_add_timestamp_on_saving TYPE boolean                 READ-ONLY.
+    DATA mv_condense                TYPE boolean                 READ-ONLY.
+
+    CLASS-METHODS add_message2bapiret
+      IMPORTING ip_msgty   TYPE symsgty    OPTIONAL
+                ip_msgid   TYPE symsgid    OPTIONAL
+                ip_msgno   TYPE symsgno    OPTIONAL
+                ip_msgv1   TYPE symsgv     OPTIONAL
+                ip_msgv2   TYPE symsgv     OPTIONAL
+                ip_msgv3   TYPE symsgv     OPTIONAL
+                ip_msgv4   TYPE symsgv     OPTIONAL
+                ip_msg     TYPE bapi_msg   OPTIONAL
+                ip_param   TYPE bapi_param OPTIONAL
+                ip_row     TYPE bapi_line  OPTIONAL
+                ip_field   TYPE bapi_fld   OPTIONAL
+      CHANGING  cs_bapiret TYPE bapirettab.
+
+    CLASS-METHODS get_db_table
+      RETURNING VALUE(ev_table_name) TYPE table_name.
+
+    CLASS-METHODS get_pris_instance
+      IMPORTING iv_lgnum                   TYPE /scwm/lgnum         OPTIONAL
+                iv_object                  TYPE balobj_d            DEFAULT mc_balobj
+                iv_subobject               TYPE balsubobj
+                iv_extnumber               TYPE balnrext            OPTIONAL
+                iv_condense                TYPE boolean             DEFAULT abap_false
+                iv_add_timestamp_on_saving TYPE boolean             DEFAULT abap_true
+                io_std_log                 TYPE REF TO /scwm/cl_log OPTIONAL
+      RETURNING VALUE(ro_instance)         TYPE REF TO /pris/ewm_cl_applog.
+
+    METHODS add_message_with_decoration
+      IMPORTING iv_msgty     TYPE symsgty    OPTIONAL
+                iv_msgid     TYPE symsgid    OPTIONAL
+                iv_msgno     TYPE symsgno    OPTIONAL
+                iv_msgv1     TYPE any        OPTIONAL
+                iv_msgv2     TYPE any        OPTIONAL
+                iv_msgv3     TYPE any        OPTIONAL
+                iv_msgv4     TYPE any        OPTIONAL
+                iv_msg       TYPE bapi_msg   OPTIONAL
+                iv_param     TYPE bapi_param OPTIONAL
+                iv_row       TYPE bapi_line  OPTIONAL
+                iv_field     TYPE bapi_fld   OPTIONAL
+                iv_overline  TYPE char1      DEFAULT '-'
+                iv_underline TYPE char1      DEFAULT '-'.
+
+    METHODS add_program_info
+      IMPORTING iv_end       TYPE boolean DEFAULT abap_false
+                iv_overline  TYPE char1   DEFAULT '-'
+                iv_underline TYPE char1   DEFAULT '-'
+                iv_depth     TYPE i       DEFAULT 4
+          PREFERRED PARAMETER iv_end.
+
+    METHODS add_separator
+      IMPORTING iv_separator_char TYPE char1   DEFAULT '-'
+                iv_msgty          TYPE symsgty DEFAULT 'I'
+          PREFERRED PARAMETER iv_separator_char.
+
+    METHODS constructor
+      IMPORTING iv_lgnum                   TYPE /scwm/lgnum         OPTIONAL
+                iv_object                  TYPE balobj_d            DEFAULT mc_balobj
+                iv_subobject               TYPE balsubobj           OPTIONAL
+                iv_extnumber               TYPE balnrext            OPTIONAL
+                iv_condense                TYPE boolean             DEFAULT abap_false
+                iv_add_timestamp_on_saving TYPE boolean             DEFAULT abap_true
+                io_std_log                 TYPE REF TO /scwm/cl_log OPTIONAL
+                iv_proginfo_overline       TYPE char1               OPTIONAL
+                iv_proginfo_underline      TYPE char1               OPTIONAL
+                iv_loghndl                 TYPE balloghndl          OPTIONAL
+      RAISING   /pris/cx_ewm_log_wrong_config.
+
+    METHODS get_external_log
+      IMPORTING iv_progname       TYPE progname
+                iv_attribute_name TYPE attribute_name
+      RETURNING VALUE(ro_log)     TYPE REF TO /scwm/cl_log.
+
+    METHODS get_timestamp
+      RETURNING VALUE(rv_timestamp) TYPE char27.
+
+    METHODS log_exception
+      IMPORTING iv_exception TYPE REF TO cx_root OPTIONAL
+                io_exception TYPE REF TO cx_root OPTIONAL
+                iv_msgty     TYPE symsgty        DEFAULT 'A'
+          PREFERRED PARAMETER io_exception.
+
+    METHODS log_struct
+      IMPORTING is_structure TYPE any.
+
+    METHODS log_timestamp
+      IMPORTING iv_msgty     TYPE symsgty DEFAULT msgty_info
+                iv_overline  TYPE char1   OPTIONAL
+                iv_underline TYPE char1   OPTIONAL.
+
+    METHODS reset_probclass_for_msgtype.
+
+    METHODS set_add_timestamp_on_saving
+      IMPORTING iv_add_timestamp_on_saving TYPE boolean.
+
+    METHODS set_condense_msgv
+      IMPORTING iv_condense TYPE boolean.
+
+    METHODS set_probclass_for_msgtype
+      IMPORTING iv_msgty     TYPE symsgty
+                iv_probclass TYPE balprobcl.
+
+    METHODS add_message_with_detail_data
+      IMPORTING iv_msgty       TYPE symsgty   OPTIONAL
+                iv_msgid       TYPE symsgid   OPTIONAL
+                iv_msgno       TYPE symsgno   OPTIONAL
+                iv_msgv1       TYPE symsgv    OPTIONAL
+                iv_msgv2       TYPE symsgv    OPTIONAL
+                iv_msgv3       TYPE symsgv    OPTIONAL
+                iv_msgv4       TYPE symsgv    OPTIONAL
+                iv_msg         TYPE bapi_msg  OPTIONAL
+                iv_probcl      TYPE balprobcl OPTIONAL
+                iv_detail_type TYPE string    OPTIONAL
+                ip_detail_data TYPE any       OPTIONAL.
+
+    METHODS add_log                   REDEFINITION.
+    METHODS add_message               REDEFINITION.
+    METHODS add_message2log           REDEFINITION.
+    METHODS change_last_message       REDEFINITION.
+    METHODS convert_bapiret2applog    REDEFINITION.
+    METHODS convert_msgtype           REDEFINITION.
+    METHODS determ_severity           REDEFINITION.
+    METHODS get_last_message          REDEFINITION.
+    METHODS get_last_message_complete REDEFINITION.
+    METHODS get_log                   REDEFINITION.
+    METHODS get_loghandle             REDEFINITION.
+    METHODS get_prot                  REDEFINITION.
+    METHODS get_severity              REDEFINITION.
+    METHODS init                      REDEFINITION.
+    METHODS read_applog               REDEFINITION.
+    METHODS save_applog               REDEFINITION.
+    METHODS save_applog2db            REDEFINITION.
+    METHODS set_rowid                 REDEFINITION.
+
+  PROTECTED SECTION.
+    CLASS-DATA so_instance TYPE REF TO /pris/ewm_cl_applog.
+
+    DATA mo_std_log            TYPE REF TO /scwm/cl_log.
+    DATA mt_msgtype_probclass  TYPE /pris/tt_msgtype_probclass.
+    DATA mv_flag_in_log        TYPE boolean.
+    DATA mv_log_prog_info      TYPE xfeld.
+    DATA mv_no_log             TYPE xfeld.
+    DATA mv_probclass          TYPE balprobcl.
+    DATA mv_proginfo_overline  TYPE char1.
+    DATA mv_proginfo_underline TYPE char1.
+    DATA mv_prog_info_flag     TYPE xfeld.
+
+    METHODS condense
+      IMPORTING iv_value_from      TYPE symsgv
+      RETURNING VALUE(rv_value_to) TYPE string.
+
+    METHODS convert_bapiret2log_w_lghndl
+      IMPORTING iv_loghndl TYPE balloghndl
+                iv_group   TYPE balsort OPTIONAL.
+
+    METHODS convert_msgty_to_probclass
+      IMPORTING iv_msgty            TYPE symsgty
+      RETURNING VALUE(rv_probclass) TYPE balprobcl.
+
+    METHODS convert_probclass_to_msgty
+      IMPORTING iv_probclass    TYPE balprobcl
+      RETURNING VALUE(rv_msgty) TYPE string.
+
+    METHODS determ_probclass
+      IMPORTING iv_index            TYPE syst_tabix
+                iv_msgty            TYPE symsgty
+      RETURNING VALUE(rv_probclass) TYPE balprobcl.
+
+    METHODS initialize.
+    METHODS init_assign_probclass_msgtype.
+
+    METHODS is_msgty_valid
+      IMPORTING iv_msgty        TYPE symsgty OPTIONAL
+      RETURNING VALUE(rv_valid) TYPE boolean.
+
+    METHODS set_log       REDEFINITION.
+    METHODS set_loghandle REDEFINITION.
+
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS zcl_ewm_applog IMPLEMENTATION.
+  METHOD add_log.
+    IF it_prot IS NOT INITIAL.
+      mo_ewm_log->add_log( it_prot = it_prot ).
+    ENDIF.
+
+    IF io_prot IS NOT INITIAL.
+      mo_ewm_log->add_log( it_prot = io_prot->get_prot( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD add_message.
+    DATA lv_msgty TYPE symsgty.
+    DATA lv_msgid TYPE symsgid.
+    DATA lv_msgno TYPE symsgno.
+    DATA lv_msgv1 TYPE symsgv.
+    DATA lv_msgv2 TYPE symsgv.
+    DATA lv_msgv3 TYPE symsgv.
+    DATA lv_msgv4 TYPE symsgv.
+
+    IF me->mo_std_log IS BOUND.
+      IF ip_msgty IS NOT INITIAL.
+        lv_msgty = ip_msgty.
+      ELSEIF ip_msg IS INITIAL.
+        lv_msgty = sy-msgty.
+      ENDIF.
+
+      IF ip_msgid IS NOT INITIAL.
+        lv_msgid = ip_msgid.
+      ELSEIF ip_msg IS INITIAL.
+        lv_msgid = sy-msgid.
+      ENDIF.
+
+      IF ip_msgno IS NOT INITIAL.
+        lv_msgno = ip_msgno.
+      ELSEIF ip_msg IS INITIAL.
+        lv_msgno = sy-msgno.
+      ENDIF.
+
+      IF ip_msgv1 IS NOT INITIAL.
+        lv_msgv1 = ip_msgv1.
+      ELSEIF ip_msg IS INITIAL.
+        lv_msgv1 = sy-msgv1.
+      ENDIF.
+
+      IF ip_msgv2 IS NOT INITIAL.
+        lv_msgv2 = ip_msgv2.
+      ELSEIF ip_msg IS INITIAL.
+        lv_msgv2 = sy-msgv2.
+      ENDIF.
+
+      IF ip_msgv3 IS NOT INITIAL.
+        lv_msgv3 = ip_msgv3.
+      ELSEIF ip_msg IS INITIAL.
+        lv_msgv3 = sy-msgv3.
+      ENDIF.
+
+      IF ip_msgv4 IS NOT INITIAL.
+        lv_msgv4 = ip_msgv4.
+      ELSEIF ip_msg IS INITIAL.
+        lv_msgv4 = sy-msgv4.
+      ENDIF.
+
+      me->mo_std_log->add_message( ip_msgty = lv_msgty
+                                   ip_msgid = lv_msgid
+                                   ip_msgno = lv_msgno
+                                   ip_msgv1 = lv_msgv1
+                                   ip_msgv2 = lv_msgv2
+                                   ip_msgv3 = lv_msgv3
+                                   ip_msgv4 = lv_msgv4
+                                   ip_msg   = ip_msg
+                                   ip_param = ip_param
+                                   ip_row   = ip_row
+                                   ip_field = ip_field ).
+    ELSE.
+      me->mo_ewm_log->add_message( iv_msgty = ip_msgty
+                                   iv_msgid = ip_msgid
+                                   iv_msgno = ip_msgno
+                                   iv_msgv1 = ip_msgv1
+                                   iv_msgv2 = ip_msgv2
+                                   iv_msgv3 = ip_msgv3
+                                   iv_msgv4 = ip_msgv4
+                                   iv_msg   = ip_msg ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD add_message2bapiret.
+    DATA ls_bapiret2 TYPE bapiret2.
+
+    IF sy-msgty IS INITIAL.
+      ls_bapiret2-type       = ip_msgty.
+      ls_bapiret2-id         = ip_msgid.
+      ls_bapiret2-number     = ip_msgno.
+      ls_bapiret2-message    = ip_msg.
+      ls_bapiret2-message_v1 = ip_msgv1.
+      ls_bapiret2-message_v2 = ip_msgv2.
+      ls_bapiret2-message_v3 = ip_msgv3.
+      ls_bapiret2-message_v4 = ip_msgv4.
+      ls_bapiret2-parameter  = ip_param.
+      ls_bapiret2-row        = ip_row.
+      ls_bapiret2-field      = ip_field.
+    ELSE.
+      ls_bapiret2-type       = sy-msgty.
+      ls_bapiret2-id         = sy-msgid.
+      ls_bapiret2-number     = sy-msgno.
+      ls_bapiret2-message    = sy-msgv1.
+      ls_bapiret2-message_v1 = sy-msgv2.
+      ls_bapiret2-message_v2 = sy-msgv3.
+      ls_bapiret2-message_v3 = sy-msgv4.
+    ENDIF.
+
+    APPEND ls_bapiret2 TO cs_bapiret.
+  ENDMETHOD.
+
+  METHOD add_message2log.
+    DATA lv_msgv1 TYPE symsgv.
+    DATA lv_msgv2 TYPE symsgv.
+    DATA lv_msgv3 TYPE symsgv.
+    DATA lv_msgv4 TYPE symsgv.
+    DATA lv_msgty TYPE symsgty.
+    DATA lv_msgid TYPE symsgid.
+    DATA lv_msgno TYPE symsgno.
+
+    IF ip_msgty IS NOT INITIAL.
+      lv_msgty = ip_msgty.
+    ELSE.
+      lv_msgty = sy-msgty.
+    ENDIF.
+
+    IF ip_msgid IS NOT INITIAL.
+      lv_msgid = ip_msgid.
+    ELSE.
+      lv_msgid = sy-msgid.
+    ENDIF.
+
+    IF ip_msgno IS NOT INITIAL.
+      lv_msgno = ip_msgno.
+    ELSE.
+      lv_msgno = sy-msgno.
+    ENDIF.
+
+    IF ip_msgv1 IS NOT INITIAL.
+      lv_msgv1 = condense( ip_msgv1 ).
+    ELSE.
+      lv_msgv1 = condense( sy-msgv1 ).
+    ENDIF.
+
+    IF ip_msgv2 IS NOT INITIAL.
+      lv_msgv2 = condense( ip_msgv2 ).
+    ELSE.
+      lv_msgv2 = condense( sy-msgv2 ).
+    ENDIF.
+
+    IF ip_msgv3 IS NOT INITIAL.
+      lv_msgv3 = condense( ip_msgv3 ).
+    ELSE.
+      lv_msgv3 = condense( sy-msgv3 ).
+    ENDIF.
+
+    IF ip_msgv4 IS NOT INITIAL.
+      lv_msgv4 = condense( ip_msgv4 ).
+    ELSE.
+      lv_msgv4 = condense( sy-msgv4 ).
+    ENDIF.
+
+    IF me->mo_std_log IS NOT BOUND.
+* Add message to application log ().
+      DATA ls_protocol  TYPE bal_s_msg.
+      DATA lv_loghandle TYPE balloghndl.
+
+* Don't write message, when global variable "gv_nolog" was set by constructor
+      CHECK gv_nolog IS INITIAL.
+
+      IF    ip_msgno IS SUPPLIED
+         OR ip_msg   IS SUPPLIED.
+        IF     gv_no_info IS NOT INITIAL
+           AND ip_msgty    = 'I'.
+          RETURN.
+        ENDIF.
+
+        ls_protocol-msgty    = ip_msgty.
+        ls_protocol-msgid    = ip_msgid.
+        ls_protocol-msgno    = ip_msgno.
+        ls_protocol-msgv1    = ip_msgv1.
+        ls_protocol-msgv2    = ip_msgv2.
+        ls_protocol-msgv3    = ip_msgv3.
+        ls_protocol-msgv4    = ip_msgv4.
+        ls_protocol-alsort   = ip_row.
+        ls_protocol-detlevel = ip_detlvl.
+      ELSE.
+        IF     gv_no_info IS NOT INITIAL
+           AND sy-msgty    = 'I'.
+          RETURN.
+        ENDIF.
+
+        ls_protocol-msgty    = sy-msgty.
+        ls_protocol-msgid    = sy-msgid.
+        ls_protocol-msgno    = sy-msgno.
+        ls_protocol-msgv1    = sy-msgv1.
+        ls_protocol-msgv2    = sy-msgv2.
+        ls_protocol-msgv3    = sy-msgv3.
+        ls_protocol-msgv4    = sy-msgv4.
+        ls_protocol-alsort   = ip_row.
+        ls_protocol-detlevel = ip_detlvl.
+      ENDIF.
+
+* Check message type / severeness
+      CASE sy-msgty.
+        WHEN 'S'.
+          ls_protocol-probclass = '4'.
+        WHEN 'I'.
+          ls_protocol-probclass = '4'.
+        WHEN 'W'.
+          ls_protocol-probclass = '3'.
+        WHEN 'E'.
+          ls_protocol-probclass = '2'.
+        WHEN 'A'.
+          ls_protocol-probclass = '1'.
+        WHEN OTHERS.
+          ls_protocol-probclass = '4'.
+      ENDCASE.
+
+* Get Loghandle
+      IF ip_loghandle IS INITIAL.
+        lv_loghandle = me->mo_ewm_log->get_loghndl( ).
+      ELSE.
+        lv_loghandle = ip_loghandle.
+      ENDIF.
+
+* Fill data into application log
+      CALL FUNCTION 'BAL_LOG_MSG_ADD'
+        EXPORTING  i_log_handle = lv_loghandle
+                   i_s_msg      = ls_protocol
+        EXCEPTIONS OTHERS       = 4.
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+
+      me->determ_severity( ip_msgty  = ls_protocol-msgty
+                           is_balmsg = ls_protocol ).
+    ELSE.
+      me->mo_std_log->add_message2log( ip_msgty     = lv_msgty
+                                       ip_msgid     = lv_msgid
+                                       ip_msgno     = lv_msgno
+                                       ip_msgv1     = lv_msgv1
+                                       ip_msgv2     = lv_msgv2
+                                       ip_msgv3     = lv_msgv3
+                                       ip_msgv4     = lv_msgv4
+                                       ip_msg       = ip_msg
+                                       ip_param     = ip_param
+                                       ip_row       = ip_row
+                                       ip_field     = ip_field
+                                       ip_detlvl    = ip_detlvl
+                                       ip_loghandle = ip_loghandle ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD add_message_with_decoration.
+    DATA lv_msgty    TYPE symsgty.
+    DATA lv_msgv1    TYPE symsgv.
+    DATA lv_msgv2    TYPE symsgv.
+    DATA lv_msgv3    TYPE symsgv.
+    DATA lv_msgv4    TYPE symsgv.
+    DATA lv_msgid    TYPE symsgid.
+    DATA lv_msgno    TYPE symsgno.
+    DATA lv_msg      TYPE string ##NEEDED.
+
+    DATA lv_sy_msgty TYPE symsgty.
+    DATA lv_sy_msgid TYPE symsgid.
+    DATA lv_sy_msgno TYPE symsgno.
+    DATA lv_sy_msgv1 TYPE symsgv.
+    DATA lv_sy_msgv2 TYPE symsgv.
+    DATA lv_sy_msgv3 TYPE symsgv.
+    DATA lv_sy_msgv4 TYPE symsgv.
+
+*  *********************************************************************
+*  ** Systemvariablen zwischenspeichern ********************************
+*  *********************************************************************
+    lv_sy_msgty = sy-msgty.
+    lv_sy_msgid = sy-msgid.
+    lv_sy_msgno = sy-msgno.
+    lv_sy_msgv1 = sy-msgv1.
+    lv_sy_msgv2 = sy-msgv2.
+    lv_sy_msgv3 = sy-msgv3.
+    lv_sy_msgv4 = sy-msgv4.
+*  *********************************************************************
+
+*     add overline
+    IF iv_overline IS NOT INITIAL.
+      add_separator( iv_separator_char = iv_overline
+                     iv_msgty          = iv_msgty ).
+    ENDIF.
+
+    IF iv_msg IS NOT INITIAL AND iv_msgid IS INITIAL AND iv_msgno IS INITIAL.
+      lv_msgty = iv_msgty.
+      lv_msgid = '/PRIS/APPLOG_MSG'.
+      lv_msgno = '010'.
+    ELSEIF iv_msgid IS INITIAL AND iv_msgno IS INITIAL.
+      lv_msgty = lv_sy_msgty.
+      lv_msgid = lv_sy_msgid.
+      lv_msgno = lv_sy_msgno.
+    ELSE.
+      lv_msgty = iv_msgty.
+      lv_msgid = iv_msgid.
+      lv_msgno = iv_msgno.
+    ENDIF.
+
+    IF iv_msgv1 IS NOT INITIAL.
+      lv_msgv1 = iv_msgv1.
+      lv_msgv2 = iv_msgv2.
+      lv_msgv3 = iv_msgv3.
+      lv_msgv4 = iv_msgv4.
+    ELSEIF lv_sy_msgv1 IS NOT INITIAL.
+      lv_msgv1 = lv_sy_msgv1.
+      lv_msgv2 = lv_sy_msgv2.
+      lv_msgv3 = lv_sy_msgv3.
+      lv_msgv4 = lv_sy_msgv4.
+    ENDIF.
+
+*   determine length of message and split
+    IF iv_msg IS NOT INITIAL.
+      CLEAR: lv_msgv1,
+             lv_msgv2,
+             lv_msgv3,
+             lv_msgv4.
+
+      IF strlen( iv_msg ) <= 50.
+        lv_msgv1 = iv_msg.
+      ELSE.
+        lv_msgv1 = iv_msg(50).
+        IF strlen( iv_msg ) <= 100.
+          lv_msgv2 = iv_msg+50.
+        ELSE.
+          lv_msgv2 = iv_msg+50(50).
+          IF strlen( iv_msg ) > 100.
+            lv_msgv3 = iv_msg+100.
+          ELSE.
+            lv_msgv3 = iv_msg+100(50).
+            IF strlen( iv_msg ) > 150.
+              lv_msgv4 = iv_msg+150.
+            ENDIF.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+*   add message
+    add_message( ip_msgty = lv_msgty
+                 ip_msgid = lv_msgid
+                 ip_msgno = lv_msgno
+                 ip_msgv1 = lv_msgv1
+                 ip_msgv2 = lv_msgv2
+                 ip_msgv3 = lv_msgv3
+                 ip_msgv4 = lv_msgv4
+                 ip_msg   = iv_msg
+                 ip_param = iv_param
+                 ip_row   = iv_row
+                 ip_field = iv_field ).
+
+*   add underline
+    IF iv_underline IS NOT INITIAL.
+      add_separator( iv_separator_char = iv_underline
+                     iv_msgty          = iv_msgty ).
+    ENDIF.
+
+*  *********************************************************************
+*  ** Systemvariablen "zurückschreiben" durch Message ******************
+*  *********************************************************************
+    IF lv_sy_msgid IS NOT INITIAL AND lv_sy_msgty IS NOT INITIAL AND lv_sy_msgno IS NOT INITIAL.
+      MESSAGE ID lv_sy_msgid TYPE lv_sy_msgty NUMBER lv_sy_msgno
+              WITH lv_sy_msgv1 lv_sy_msgv2 lv_sy_msgv3 lv_sy_msgv4
+              INTO lv_msg.
+    ENDIF.
+*  *********************************************************************
+  ENDMETHOD.
+
+  METHOD add_program_info.
+    " TODO: parameter IV_OVERLINE is never used (ABAP cleaner)
+    " TODO: parameter IV_UNDERLINE is never used (ABAP cleaner)
+
+    DATA lv_depth TYPE /pris/main_de_depth_call_stack.
+
+    lv_depth = iv_depth.
+
+    mo_ewm_log->add_program_info( iv_end   = iv_end
+                                  iv_depth = lv_depth ).
+  ENDMETHOD.
+
+  METHOD add_separator.
+    mo_ewm_log->add_separator( iv_separator_char = iv_separator_char
+                               iv_msgty          = iv_msgty ).
+  ENDMETHOD.
+
+  METHOD change_last_message.
+    " im gegenwärtigen release nicht möglich, da die funktion nur vor dem
+    " übertrag von mp_protocol in den bal-speicher möglich wäre, danach
+    " wird mp_protocol gelöscht, um doppelung von nachrichten im protocol
+    " zu vermeiden. der übertrag erfolgt in save_applog bzw save_applog2db
+  ENDMETHOD.
+
+  METHOD condense.
+*    IF iv_value_from IS INITIAL.
+*      RETURN.
+*    ENDIF.
+*
+*    rv_value_to = iv_value_from.
+*
+*    IF me->mv_condense EQ abap_true.
+*      CONDENSE rv_value_to.
+*      SHIFT rv_value_to LEFT DELETING LEADING '0'.
+*    ENDIF.
+
+    rv_value_to = mo_ewm_log->condense( iv_value_from ).
+  ENDMETHOD.
+
+  METHOD constructor.
+    DATA lv_object    TYPE balobj_d.
+    DATA lv_subobject TYPE balsubobj.
+    " TODO: variable is assigned but never used (ABAP cleaner)
+    DATA lv_extnumber TYPE balnrext.
+
+    IF iv_subobject IS INITIAL AND iv_loghndl IS INITIAL.
+      RAISE EXCEPTION NEW /pris/cx_ewm_log_wrong_config( textid = /pris/cx_ewm_log_wrong_config=>wrong_parameters ).
+    ENDIF.
+
+    IF iv_loghndl IS NOT INITIAL.
+      SELECT SINGLE object subobject FROM balhdr
+        INTO ( lv_object, lv_subobject )
+        WHERE log_handle = iv_loghndl.
+    ELSE.
+      lv_object = iv_object.
+      lv_subobject = iv_subobject.
+      lv_extnumber = iv_extnumber.
+    ENDIF.
+
+    super->constructor( iv_created_date = sy-datum
+                        iv_created_time = sy-uzeit
+                        iv_lgnum        = iv_lgnum
+                        iv_balobj       = lv_object
+                        iv_balsubobj    = lv_subobject ).
+
+    TRY.
+        me->mo_ewm_log = NEW #( iv_lgnum                   = iv_lgnum
+                                iv_object                  = lv_object
+                                iv_subobject               = lv_subobject
+                                iv_extnumber               = iv_extnumber
+                                iv_loghndl                 = iv_loghndl
+                                iv_condense                = iv_condense
+                                iv_add_timestamp_on_saving = iv_add_timestamp_on_saving
+                                iv_proginfo_overline_char  = iv_proginfo_overline
+                                iv_proginfo_underline_char = iv_proginfo_underline ).
+      CATCH /pris/cx_main_log_config.
+        RAISE EXCEPTION TYPE /pris/cx_ewm_log_wrong_config
+              MESSAGE ID sy-msgid
+              TYPE sy-msgty
+              NUMBER sy-msgno
+              WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    ENDTRY.
+
+    mo_std_log = io_std_log.
+  ENDMETHOD.
+
+  METHOD convert_bapiret2applog.
+    IF me->mo_std_log IS NOT BOUND.
+      FIELD-SYMBOLS <prot> TYPE bapiret2.
+      DATA lt_bapiret TYPE bapirettab.
+
+      DATA ls_msg     TYPE bal_s_msg.
+
+      CLEAR ev_loghandle.
+
+      IF it_bapiret IS NOT INITIAL.
+        lt_bapiret = it_bapiret.
+      ELSE.
+        lt_bapiret = me->mo_ewm_log->get_prot( ).
+      ENDIF.
+
+* Get Log Handle
+      ev_loghandle = me->mo_ewm_log->get_loghndl( ).
+
+      LOOP AT lt_bapiret ASSIGNING <prot>.
+*   do not add 'I' messages if set globally
+        IF     gv_no_info  IS NOT INITIAL
+           AND <prot>-type  = 'I'.
+          CONTINUE.
+        ENDIF.
+
+*   Put Log data into internal table
+        CLEAR ls_msg.
+        ls_msg-msgty  = <prot>-type.
+        ls_msg-msgid  = <prot>-id.
+        ls_msg-msgno  = <prot>-number.
+        ls_msg-msgv1  = <prot>-message_v1.
+        ls_msg-msgv2  = <prot>-message_v2.
+        ls_msg-msgv3  = <prot>-message_v3.
+        ls_msg-msgv4  = <prot>-message_v4.
+        ls_msg-alsort = <prot>-row.
+        IF iv_group IS NOT INITIAL.
+          ls_msg-alsort = iv_group.
+        ENDIF.
+        CASE <prot>-type.
+          WHEN 'S'.
+            ls_msg-probclass = '4'.
+          WHEN 'I'.
+            ls_msg-probclass = '4'.
+          WHEN 'W'.
+            ls_msg-probclass = '3'.
+          WHEN 'E'.
+            ls_msg-probclass = '2'.
+          WHEN 'A'.
+            ls_msg-probclass = '1'.
+          WHEN OTHERS.
+            ls_msg-probclass = '4'.
+        ENDCASE.
+
+*   Fill data into application log
+        IF <prot>-number IS NOT INITIAL.
+          CALL FUNCTION 'BAL_LOG_MSG_ADD'
+            EXPORTING  i_log_handle = ev_loghandle
+                       i_s_msg      = ls_msg
+            EXCEPTIONS OTHERS       = 4.
+          IF sy-subrc <> 0.
+            EXIT.
+          ENDIF.
+        ELSEIF <prot>-message IS NOT INITIAL.
+          CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
+            EXPORTING  i_log_handle = ev_loghandle
+                       i_msgty      = <prot>-type
+                       i_probclass  = ls_msg-probclass
+                       i_text       = <prot>-message
+            EXCEPTIONS OTHERS       = 4.
+          IF sy-subrc <> 0.
+            EXIT.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
+    ELSE.
+      me->mo_std_log->convert_bapiret2applog( EXPORTING it_bapiret   = it_bapiret
+                                                        iv_group     = iv_group
+                                              IMPORTING ev_loghandle = ev_loghandle ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD convert_bapiret2log_w_lghndl.
+    DATA lt_bapiret TYPE bapirettab.
+    DATA ls_msg     TYPE bal_s_msg.
+
+    FIELD-SYMBOLS <prot> TYPE bapiret2.
+
+    IF me->mo_std_log IS NOT BOUND.
+      lt_bapiret = mo_ewm_log->get_prot( ).
+    ELSE.
+      lt_bapiret = mo_std_log->mp_protocol.
+    ENDIF.
+
+    LOOP AT lt_bapiret ASSIGNING <prot>.
+*       do not add 'I' messages if set globally
+      IF gv_no_info IS NOT INITIAL AND <prot>-type = 'I'.
+        CONTINUE.
+      ENDIF.
+
+*       put log data into internal table
+      CLEAR ls_msg.
+      ls_msg-msgty  = <prot>-type.
+      ls_msg-msgid  = <prot>-id.
+      ls_msg-msgno  = <prot>-number.
+      ls_msg-msgv1  = <prot>-message_v1.
+      ls_msg-msgv2  = <prot>-message_v2.
+      ls_msg-msgv3  = <prot>-message_v3.
+      ls_msg-msgv4  = <prot>-message_v4.
+      ls_msg-alsort = <prot>-row.
+
+      IF iv_group IS NOT INITIAL.
+        ls_msg-alsort = iv_group.
+      ENDIF.
+
+      CASE <prot>-type.
+        WHEN 'S'.
+          ls_msg-probclass = '4'.
+        WHEN 'I'.
+          ls_msg-probclass = '4'.
+        WHEN 'W'.
+          ls_msg-probclass = '3'.
+        WHEN 'E'.
+          ls_msg-probclass = '2'.
+        WHEN 'A'.
+          ls_msg-probclass = '1'.
+        WHEN OTHERS.
+          ls_msg-probclass = '4'.
+      ENDCASE.
+
+*       fill data into application log
+      IF <prot>-number IS NOT INITIAL.
+        CALL FUNCTION 'BAL_LOG_MSG_ADD'
+          EXPORTING  i_log_handle = iv_loghndl
+                     i_s_msg      = ls_msg
+          EXCEPTIONS OTHERS       = 4.
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+      ELSEIF <prot>-message IS NOT INITIAL.
+        CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
+          EXPORTING  i_log_handle = iv_loghndl
+                     i_msgty      = <prot>-type
+                     i_probclass  = ls_msg-probclass
+                     i_text       = <prot>-message
+          EXCEPTIONS OTHERS       = 4.
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD convert_msgtype.
+    IF me->mo_std_log IS NOT BOUND.
+      FIELD-SYMBOLS <prot> TYPE bapiret2.
+      CHECK iv_msgtype IS NOT INITIAL.
+
+      LOOP AT me->mo_ewm_log->get_prot( ) ASSIGNING <prot>.
+        IF     iv_replace_only IS NOT INITIAL
+           AND <prot>-type     <> iv_replace_only.
+          CONTINUE.
+        ENDIF.
+        <prot>-type = iv_msgtype.
+      ENDLOOP.
+
+      mp_severity = determ_severity( it_prot = mp_protocol ).
+    ELSE.
+      me->mo_std_log->convert_msgtype( iv_msgtype      = iv_msgtype
+                                       iv_replace_only = iv_replace_only ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD convert_msgty_to_probclass.
+*    DATA: lv_index TYPE syst_tabix.
+*
+*    lv_index = lines( me->mp_protocol ) + 1.
+*
+*    rv_probclass = me->determ_probclass(
+*      EXPORTING
+*        iv_index     = lv_index
+*        iv_msgty     = iv_msgty
+*    ).
+
+    rv_probclass = mo_ewm_log->convert_msgty_to_probclass( iv_msgty ).
+  ENDMETHOD.
+
+  METHOD convert_probclass_to_msgty.
+    CASE iv_probclass.
+      WHEN '1'.
+        rv_msgty = 'AEX'.
+      WHEN '2'.
+        rv_msgty = 'AEWX'.
+      WHEN '3'.
+        rv_msgty = 'AEWIX'.
+      WHEN '4'.
+        rv_msgty = 'AEWISX'.
+      WHEN OTHERS.
+    ENDCASE.
+  ENDMETHOD.
+
+  METHOD determ_probclass.
+    FIELD-SYMBOLS <ls_msgtype_probclass> TYPE /pris/s_msgtype_probclass.
+
+    LOOP AT me->mt_msgtype_probclass ASSIGNING <ls_msgtype_probclass>.
+      IF    (     <ls_msgtype_probclass>-index_start <= iv_index
+              AND <ls_msgtype_probclass>-index_end   >= iv_index )
+         OR (     <ls_msgtype_probclass>-index_start <= iv_index
+              AND <ls_msgtype_probclass>-index_end    < 0 ).
+        rv_probclass = <ls_msgtype_probclass>-probclass.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+    ASSIGN me->mt_msgtype_probclass[ msgty = iv_msgty ] TO <ls_msgtype_probclass>.
+    IF sy-subrc = 0.
+      rv_probclass = <ls_msgtype_probclass>-probclass.
+    ELSE.
+      rv_probclass = '4'.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD determ_severity.
+    IF me->mo_std_log IS NOT BOUND.
+      FIELD-SYMBOLS <fs_prot> LIKE LINE OF it_prot.
+      DATA lf_severity LIKE mp_severity.
+
+      LOOP AT it_prot ASSIGNING <fs_prot>.
+        CASE <fs_prot>-type.
+          WHEN 'A'.
+            lf_severity = <fs_prot>-type.
+            EXIT.
+          WHEN 'E'.
+            lf_severity = <fs_prot>-type.
+          WHEN 'W'.
+            IF lf_severity <> 'E'.
+              lf_severity = <fs_prot>-type.
+            ENDIF.
+          WHEN 'I'.
+            IF lf_severity IS INITIAL.
+              lf_severity = <fs_prot>-type.
+            ENDIF.
+          WHEN 'S'.
+            IF lf_severity IS INITIAL.
+              lf_severity = 'I'.
+            ENDIF.
+        ENDCASE.
+      ENDLOOP.
+
+      IF    ( lf_severity = 'A' OR  lf_severity  = 'E' )
+* abort message occurred
+         OR ( lf_severity = 'W' AND mp_severity <> 'E' )
+* warning
+         OR ( lf_severity = 'I' AND mp_severity IS INITIAL ).
+* info
+        mp_severity = lf_severity.
+      ENDIF.
+
+      IF is_msg IS NOT INITIAL.
+        lf_severity = is_msg-type.
+        IF lf_severity = 'S'.
+          lf_severity = 'I'.
+        ENDIF.
+
+        IF    ( lf_severity = 'A' OR  lf_severity  = 'E' )
+* abort message occurred
+           OR ( lf_severity = 'W' AND mp_severity <> 'E' )
+* warning
+           OR ( lf_severity = 'I' AND mp_severity IS INITIAL ).
+* info
+          mp_severity = lf_severity.
+        ENDIF.
+      ENDIF.
+
+      IF is_balmsg IS NOT INITIAL.
+        CASE is_balmsg-probclass.
+          WHEN '4'.
+            lf_severity = 'I'.
+          WHEN '3'.
+            lf_severity = 'W'.
+          WHEN '2'.
+            lf_severity = 'E'.
+          WHEN '1'.
+            lf_severity = 'A'.
+          WHEN OTHERS.
+        ENDCASE.
+      ENDIF.
+
+      IF    ( lf_severity = 'A' OR  lf_severity  = 'E' )
+* abort message occurred
+         OR ( lf_severity = 'W' AND mp_severity <> 'E' )
+* warning
+         OR ( lf_severity = 'I' AND mp_severity IS INITIAL ).
+* info
+        mp_severity = lf_severity.
+      ENDIF.
+
+      ev_severity = lf_severity.
+    ELSE.
+      ev_severity = me->mo_std_log->determ_severity( is_msg    = is_msg
+                                                     it_prot   = it_prot
+                                                     ip_msgty  = ip_msgty
+                                                     is_balmsg = is_balmsg ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_db_table.
+*    DATA lo_descr_ref TYPE REF TO cl_abap_typedescr.
+*
+*    lo_descr_ref = cl_abap_datadescr=>describe_by_data( p_data = ss_data ).
+*    ev_table_name = lo_descr_ref->get_relative_name( ).
+  ENDMETHOD.
+
+  METHOD get_external_log.
+    DATA lv_string TYPE string.
+
+    FIELD-SYMBOLS <lo_log> TYPE REF TO /scwm/cl_log.
+
+    IF iv_progname IS INITIAL OR iv_attribute_name IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    CONCATENATE '(' iv_progname ')' iv_attribute_name INTO lv_string.
+
+    ASSIGN (lv_string) TO <lo_log>.
+    IF <lo_log> IS ASSIGNED.
+      ro_log ?= <lo_log>.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_last_message.
+    DATA(ls_message) = me->mo_ewm_log->get_last_message( iv_severity = iv_msg_type ).
+
+    ev_msgtext = ls_message-message.
+  ENDMETHOD.
+
+  METHOD get_last_message_complete.
+*    FIELD-SYMBOLS: <ls_prot> TYPE bapiret2.
+*
+*    LOOP AT mt_protocol_all_msg ASSIGNING <ls_prot> WHERE type = iv_msg_type.
+*      ev_msg = <ls_prot>.
+*    ENDLOOP.
+
+    ev_msg = me->mo_ewm_log->get_last_message( iv_severity = iv_msg_type ).
+  ENDMETHOD.
+
+  METHOD get_log.
+*    IF me->mo_std_log IS NOT BOUND.
+*      super->get_log(
+*        IMPORTING
+*          es_log = es_log
+*      ).
+*    ELSE.
+*      me->mo_std_log->get_log(
+*        IMPORTING
+*          es_log = es_log
+*      ).
+*    ENDIF.
+
+    IF me->mo_std_log IS BOUND.
+      me->mo_std_log->get_log( IMPORTING es_log = es_log ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_loghandle.
+    IF me->mo_std_log IS NOT BOUND.
+      ev_loghandle = me->mo_ewm_log->get_loghndl( ).
+    ELSE.
+      me->mo_std_log->get_loghandle( IMPORTING ev_loghandle = ev_loghandle ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_pris_instance.
+    IF zcl_ewm_applog=>so_instance IS NOT BOUND.
+      TRY.
+          zcl_ewm_applog=>so_instance = NEW #( iv_lgnum                   = iv_lgnum
+                                               iv_object                  = iv_object
+                                               iv_subobject               = iv_subobject
+                                               iv_extnumber               = iv_extnumber
+                                               iv_condense                = iv_condense
+                                               iv_add_timestamp_on_saving = iv_add_timestamp_on_saving
+                                               io_std_log                 = io_std_log ).
+        CATCH /pris/cx_ewm_log_wrong_config.
+      ENDTRY.
+    ENDIF.
+
+*    /pris/ewm_cl_applog=>so_instance->initialize( ).
+
+    ro_instance = zcl_ewm_applog=>so_instance.
+  ENDMETHOD.
+
+  METHOD get_prot.
+    IF me->mo_std_log IS NOT BOUND.
+      et_protocol = me->mo_ewm_log->get_prot( ).
+    ELSE.
+      et_protocol = me->mo_std_log->get_prot( ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_severity.
+    IF me->mo_std_log IS NOT BOUND.
+      e_rc_severity = me->mo_ewm_log->get_severity( ).
+    ELSE.
+      e_rc_severity = me->mo_std_log->get_severity( ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_timestamp.
+*    DATA:  lv_tstamp    TYPE timestampl,
+*           lv_tzone     TYPE tznzone,
+*           lv_nano_secs TYPE p DECIMALS 7,
+*           lv_date      TYPE d,
+*           lv_time      TYPE t,
+*           lv_output    TYPE c LENGTH 27,
+*           lv_msg       TYPE string.
+*
+**   aktuelle Timestamp ermitteln
+*    GET TIME STAMP FIELD lv_tstamp.
+*
+*    IF mv_lgnum IS NOT INITIAL.
+**     Zeitzone zur Lagernummer ermitteln
+*      CALL FUNCTION '/SCWM/LGNUM_TZONE_READ'
+*        EXPORTING
+*          iv_lgnum        = mv_lgnum
+*        IMPORTING
+*          ev_tzone        = lv_tzone
+*        EXCEPTIONS
+*          interface_error = 1
+*          data_not_found  = 2
+*          OTHERS          = 3.
+*      IF sy-subrc <> 0.
+*        lv_tzone = sy-zonlo.
+*      ENDIF.
+*
+**     Nanosekunden ermitteln
+*      lv_nano_secs = frac( lv_tstamp ).
+*
+**     Timestamp in Datum und Zeit konvertieren
+*      CONVERT TIME STAMP lv_tstamp TIME ZONE lv_tzone
+*        INTO DATE lv_date TIME lv_time.
+*
+**     Datum und Zeit formatieren
+*      WRITE: lv_date      TO lv_output(10),
+*      lv_time      TO lv_output+11(8),
+*      lv_nano_secs TO lv_output+19(8).
+*
+*      rv_timestamp = lv_output.
+*    ELSE.
+*      rv_timestamp = lv_tstamp.
+*    ENDIF.
+
+    DATA lv_tstamp    TYPE timestampl.
+    DATA lv_nano_secs TYPE p LENGTH 8 DECIMALS 7.
+    DATA lv_date      TYPE d.
+    DATA lv_time      TYPE t.
+    DATA lv_output    TYPE c LENGTH 27.
+
+    " get timestamp
+    GET TIME STAMP FIELD lv_tstamp.
+
+    " determine Nanoseconds
+    lv_nano_secs = frac( lv_tstamp ).
+
+    " Convert timestamp to date and time
+    CONVERT TIME STAMP lv_tstamp TIME ZONE sy-zonlo
+            INTO DATE lv_date TIME lv_time.
+
+    " Convert date and time
+    WRITE: lv_date      TO lv_output(10),
+           lv_time      TO lv_output+11(8),
+           lv_nano_secs TO lv_output+19(8).
+
+    rv_timestamp = lv_output.
+  ENDMETHOD.
+
+  METHOD init.
+    IF me->mo_std_log IS NOT BOUND.
+      DATA lv_key_value TYPE /pris/main_de_key_value.
+
+      lv_key_value = iv_lgnum.
+
+      TRY.
+          me->mo_ewm_log->init_log( iv_key_type  = 'A'
+                                    iv_key_value = lv_key_value
+                                    iv_object    = iv_balobj
+                                    iv_subobject = iv_balsubobj ).
+        CATCH /pris/cx_main_log_config.    "
+          RETURN.
+      ENDTRY.
+    ELSE.
+      me->mo_std_log->init( iv_lgnum     = iv_lgnum
+                            iv_balobj    = iv_balobj
+                            iv_balsubobj = iv_balsubobj ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD initialize.
+*  DATA: lv_msg  TYPE bapi_msg,
+*        lv_time TYPE symsgv.
+*
+*  CLEAR:  mv_created_date,
+*          mv_created_time,
+*          mp_protocol,
+*          mp_severity,
+*          mt_protocol_all_msg,
+*
+*          mp_loghandle.
+*
+*  mv_created_date = sy-datum.
+*  mv_created_time = sy-uzeit.
+*
+** Konfiguration der Zuordnung von Nachrichtentyp zu Problemklasse
+***********************************************************************
+*  me->init_assign_probclass_msgtype( ).
+*
+*  lv_time = me->mo_ewm_log->get_timestamp( ).
+*
+*  MESSAGE s006 WITH sy-uname lv_time me->gv_nolog me->mv_probclass INTO lv_msg.
+*
+*  me->add_message_with_decoration(
+*    iv_msgty     = msgty_info
+*    iv_msg       = lv_msg
+*    iv_overline  = '*'
+*    iv_underline = '*'
+*  ).
+  ENDMETHOD.
+
+  METHOD init_assign_probclass_msgtype.
+*    DATA: ls_msgtype_probclass TYPE /pris/s_msgtype_probclass.
+*
+*    CLEAR ls_msgtype_probclass.
+*    ls_msgtype_probclass-msgty = 'A'.
+*    ls_msgtype_probclass-probclass = '1'.
+*    ls_msgtype_probclass-index_start = 0.
+*    ls_msgtype_probclass-index_end = 0.
+*    APPEND ls_msgtype_probclass TO me->mt_msgtype_probclass.
+*
+*    CLEAR ls_msgtype_probclass.
+*    ls_msgtype_probclass-msgty = 'E'.
+*    ls_msgtype_probclass-probclass = '1'.
+*    ls_msgtype_probclass-index_start = 0.
+*    ls_msgtype_probclass-index_end = 0.
+*    APPEND ls_msgtype_probclass TO me->mt_msgtype_probclass.
+*
+*    CLEAR ls_msgtype_probclass.
+*    ls_msgtype_probclass-msgty = 'W'.
+*    ls_msgtype_probclass-probclass = '2'.
+*    ls_msgtype_probclass-index_start = 0.
+*    ls_msgtype_probclass-index_end = 0.
+*    APPEND ls_msgtype_probclass TO me->mt_msgtype_probclass.
+*
+*    CLEAR ls_msgtype_probclass.
+*    ls_msgtype_probclass-msgty = 'I'.
+*    ls_msgtype_probclass-probclass = '3'.
+*    ls_msgtype_probclass-index_start = 0.
+*    ls_msgtype_probclass-index_end = 0.
+*    APPEND ls_msgtype_probclass TO me->mt_msgtype_probclass.
+*
+*    ls_msgtype_probclass-msgty = 'S'.
+*    ls_msgtype_probclass-probclass = '4'.
+*    ls_msgtype_probclass-index_start = 0.
+*    ls_msgtype_probclass-index_end = 0.
+*    APPEND ls_msgtype_probclass TO me->mt_msgtype_probclass.
+  ENDMETHOD.
+
+  METHOD is_msgty_valid.
+*    DATA: lv_msgty TYPE symsgty.
+*
+*    lv_msgty = iv_msgty.
+*
+*    IF lv_msgty IS INITIAL.
+*      lv_msgty = sy-msgty.
+*    ENDIF.
+*
+*    IF me->convert_msgty_to_probclass( lv_msgty ) LE me->mv_probclass.
+*      rv_valid = abap_true.
+*    ENDIF.
+  ENDMETHOD.
+
+  METHOD log_exception.
+    " TODO: parameter IV_EXCEPTION is never used (ABAP cleaner)
+
+    mo_ewm_log->add_exception( ix_error = io_exception
+*                               iv_msgty = wmegc_severity_abort
+                               iv_msgty = iv_msgty ).
+  ENDMETHOD.
+
+  METHOD log_struct.
+    mo_ewm_log->add_struct( is_structure = is_structure ).
+  ENDMETHOD.
+
+  METHOD log_timestamp.
+    " TODO: parameter IV_OVERLINE is never used (ABAP cleaner)
+    " TODO: parameter IV_UNDERLINE is never used (ABAP cleaner)
+
+    mo_ewm_log->add_timestamp( iv_msgty = iv_msgty ).
+  ENDMETHOD.
+
+  METHOD read_applog.
+    IF me->mo_std_log IS NOT BOUND.
+      me->mo_ewm_log->read_log( i_loghandle ).
+    ELSE.
+      me->mo_std_log->read_applog( i_loghandle = i_loghandle ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD reset_probclass_for_msgtype.
+    mo_ewm_log->reset_probclass_for_msgtype( ).
+  ENDMETHOD.
+
+  METHOD save_applog.
+*    DATA lv_index     TYPE syst_tabix.
+*    DATA lv_loghandle TYPE balloghndl.
+
+*    DATA: ls_msg TYPE bal_s_msg.
+
+*    FIELD-SYMBOLS: <fs_prot> LIKE LINE OF mp_protocol.
+
+* ggf. Datum, Zeit und Timestamp zum Log hinzufügen
+***  IF me->mv_add_timestamp_on_saving EQ abap_true.
+***    me->log_timestamp( ).
+***  ENDIF.
+
+    IF me->mo_std_log IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    me->mo_std_log->save_applog( EXPORTING is_log       = is_log
+                                 IMPORTING ev_loghandle = ev_loghandle ).
+
+    IF me->mo_std_log->mp_loghandle IS INITIAL.
+      me->mo_std_log->mp_loghandle = ev_loghandle.
+    ENDIF.
+
+    CLEAR me->mo_std_log->mp_protocol.
+*  ELSE.
+*****     Methode der Elternklasse aufrufen
+****    super->save_applog(
+****      EXPORTING
+****        is_log       = is_log
+****      IMPORTING
+****        ev_loghandle = ev_loghandle
+****    ).
+*
+*    IF me->mp_protocol IS INITIAL.
+*      RETURN.
+*    ENDIF.
+*
+*    IF me->mp_loghandle IS INITIAL.
+**-    open log
+*      CALL FUNCTION 'BAL_LOG_CREATE'
+*        EXPORTING
+*          i_s_log                 = is_log
+*        IMPORTING
+*          e_log_handle            = lv_loghandle
+*        EXCEPTIONS
+*          log_header_inconsistent = 1
+*          OTHERS                  = 2.
+*      IF sy-subrc <> 0.
+*        EXIT.
+*      ENDIF.
+*    ELSE.
+*      lv_loghandle = me->mp_loghandle.
+*    ENDIF.
+*
+*    LOOP AT mp_protocol ASSIGNING <fs_prot>.
+*      lv_index = sy-tabix.
+*
+*      CLEAR ls_msg.
+**-    put data into internal table
+*      ls_msg-msgty     = <fs_prot>-type.
+*      ls_msg-msgid     = <fs_prot>-id.
+*      ls_msg-msgno     = <fs_prot>-number.
+*      ls_msg-msgv1     = <fs_prot>-message_v1.
+*      ls_msg-msgv2     = <fs_prot>-message_v2.
+*      ls_msg-msgv3     = <fs_prot>-message_v3.
+*      ls_msg-msgv4     = <fs_prot>-message_v4.
+*
+*      ls_msg-probclass = me->determ_probclass(
+*        EXPORTING
+*          iv_index     = lv_index
+*          iv_msgty     = <fs_prot>-type
+*      ).
+*
+*
+**      CASE <fs_prot>-type.
+**        WHEN 'S'.
+**          ls_msg-probclass = '4'.
+**        WHEN 'I'.
+**          ls_msg-probclass = '4'.
+**        WHEN 'W'.
+**          ls_msg-probclass = '3'.
+**        WHEN 'E'.
+**          ls_msg-probclass = '2'.
+**        WHEN 'A'.
+**          ls_msg-probclass = '1'.
+**        WHEN OTHERS.
+**          ls_msg-probclass = '4'.
+**      ENDCASE.
+*
+**-    write application log
+*      IF <fs_prot>-number IS NOT INITIAL.
+*        CALL FUNCTION 'BAL_LOG_MSG_ADD'
+*          EXPORTING
+*            i_log_handle     = lv_loghandle
+*            i_s_msg          = ls_msg
+*          EXCEPTIONS
+*            log_not_found    = 1
+*            msg_inconsistent = 2
+*            log_is_full      = 3
+*            OTHERS           = 4.
+*        IF sy-subrc <> 0.
+*        ENDIF.
+*      ELSEIF <fs_prot>-message IS NOT INITIAL.
+*        CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
+*          EXPORTING
+*            i_log_handle     = lv_loghandle
+*            i_msgty          = <fs_prot>-type
+*            i_probclass      = ls_msg-probclass
+*            i_text           = <fs_prot>-message
+*          EXCEPTIONS
+*            log_not_found    = 1
+*            msg_inconsistent = 2
+*            log_is_full      = 3
+*            OTHERS           = 4.
+*        IF sy-subrc <> 0.
+*        ENDIF.
+*      ENDIF.
+*    ENDLOOP.
+*
+*    IF me->mp_loghandle IS INITIAL.
+*      ev_loghandle = lv_loghandle.
+*      me->mp_loghandle = ev_loghandle.
+*    ENDIF.
+*
+*    CLEAR me->mp_protocol.
+  ENDMETHOD.
+
+  METHOD save_applog2db.
+    DATA lv_loghandle TYPE balloghndl.
+
+    DATA lt_logh      TYPE bal_t_logh.
+
+    lv_loghandle = iv_loghandle.
+
+    IF me->mo_std_log IS BOUND.
+      IF me->mv_add_timestamp_on_saving = abap_true.
+        log_timestamp( ).
+      ENDIF.
+
+      IF lv_loghandle IS INITIAL.
+        IF me->mo_std_log->mp_loghandle IS INITIAL.
+          me->mo_std_log->save_applog( EXPORTING is_log       = me->mo_std_log->mp_log
+                                       IMPORTING ev_loghandle = lv_loghandle ).
+        ELSE.
+          lv_loghandle = me->mo_std_log->mp_loghandle.
+
+          me->mo_std_log->convert_bapiret2applog( ).
+
+          CLEAR me->mo_std_log->mp_protocol.
+        ENDIF.
+      ENDIF.
+
+      APPEND lv_loghandle TO lt_logh.
+
+      " Lese Log aus Datenbank
+      CALL FUNCTION 'BAL_DB_LOAD'
+        EXPORTING  i_t_log_handle     = lt_logh
+        EXCEPTIONS no_logs_specified  = 1
+                   log_not_found      = 2
+                   log_already_loaded = 3
+                   OTHERS             = 4.
+
+      IF me->mo_std_log->mp_protocol IS NOT INITIAL.
+        convert_bapiret2log_w_lghndl( iv_loghndl = lv_loghandle ).
+
+        CLEAR me->mo_std_log->mp_protocol.
+      ENDIF.
+
+      me->mo_std_log->save_applog2db( EXPORTING iv_loghandle = lv_loghandle
+                                      IMPORTING es_lognumber = es_lognumber ).
+    ELSE.
+      TRY.
+          es_lognumber = me->mo_ewm_log->save_log( iv_loghndl = iv_loghandle ).
+        CATCH /pris/cx_main_log_saving INTO DATA(lx_log_saving).
+          RAISE EXCEPTION TYPE /pris/cx_main_log_saving
+                MESSAGE ID sy-msgid
+                TYPE lx_log_saving->if_t100_dyn_msg~msgty
+                NUMBER sy-msgno
+                WITH lx_log_saving->if_t100_dyn_msg~msgv1 lx_log_saving->if_t100_dyn_msg~msgv2 lx_log_saving->if_t100_dyn_msg~msgv3 lx_log_saving->if_t100_dyn_msg~msgv4.
+      ENDTRY.
+    ENDIF.
+
+*  IF lv_loghandle IS INITIAL.
+*    IF me->mo_std_log IS NOT BOUND.
+*      IF me->mp_loghandle IS INITIAL.
+*        me->save_applog(
+*          EXPORTING
+*            is_log       = me->mp_log
+*          IMPORTING
+*            ev_loghandle = lv_loghandle
+*        ).
+*      ELSE.
+*        lv_loghandle = me->mp_loghandle.
+*
+*        me->convert_bapiret2applog( ).
+*
+*        CLEAR me->mp_protocol.
+*      ENDIF.
+*    ELSE.
+*      IF me->mo_std_log->mp_loghandle IS INITIAL.
+*        me->mo_std_log->save_applog(
+*          EXPORTING
+*            is_log       = me->mp_log
+*          IMPORTING
+*            ev_loghandle = lv_loghandle
+*        ).
+*      ELSE.
+*        lv_loghandle = me->mp_loghandle.
+*
+*        me->mo_std_log->convert_bapiret2applog( ).
+*
+*        CLEAR me->mo_std_log->mp_protocol.
+*      ENDIF.
+*    ENDIF.
+*  ELSE.
+*    APPEND lv_loghandle TO lt_logh.
+*
+*    " Lese Log aus Datenbank
+*    CALL FUNCTION 'BAL_DB_LOAD'
+*      EXPORTING
+*        i_t_log_handle     = lt_logh
+*      EXCEPTIONS
+*        no_logs_specified  = 1
+*        log_not_found      = 2
+*        log_already_loaded = 3
+*        OTHERS             = 4.
+*    IF sy-subrc NE 0 ##NEEDED.
+*      " Irrelevant
+*    ENDIF.
+*
+*    IF me->mo_std_log IS NOT BOUND.
+*      IF me->mp_protocol IS NOT INITIAL.
+*        convert_bapiret2log_w_lghndl( iv_loghndl = lv_loghandle ).
+*
+*        CLEAR me->mp_protocol.
+*      ENDIF.
+*    ELSE.
+*      IF me->mo_std_log->mp_protocol IS NOT INITIAL.
+*        convert_bapiret2log_w_lghndl( iv_loghndl = lv_loghandle ).
+*
+*        CLEAR me->mo_std_log->mp_protocol.
+*      ENDIF.
+*    ENDIF.
+*  ENDIF.
+*
+*  IF me->mo_std_log IS NOT BOUND.
+*    super->save_applog2db(
+*      EXPORTING
+*        iv_loghandle = lv_loghandle
+*      IMPORTING
+*        es_lognumber = es_lognumber
+*    ).
+*  ELSE.
+*    me->mo_std_log->save_applog2db(
+*      EXPORTING
+*        iv_loghandle = lv_loghandle
+*      IMPORTING
+*        es_lognumber = es_lognumber
+*    ).
+*  ENDIF.
+  ENDMETHOD.
+
+  METHOD set_add_timestamp_on_saving.
+    mo_ewm_log->set_timestamp_on_saving( iv_add_timestamp_on_saving = iv_add_timestamp_on_saving ).
+  ENDMETHOD.
+
+  METHOD set_condense_msgv.
+    mo_ewm_log->set_condense_msgv( iv_condense ).
+  ENDMETHOD.
+
+  METHOD set_log.
+    IF me->mo_std_log IS BOUND.
+      me->mo_std_log->set_log( is_log = is_log ).
+*    ELSE.
+*      super->set_log(
+*        EXPORTING
+*          is_log = is_log
+*      ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD set_loghandle.
+    IF me->mo_std_log IS NOT BOUND.
+      me->mo_ewm_log->set_loghndl( iv_loghandle ).
+    ELSE.
+      me->mo_std_log->set_loghandle( iv_loghandle = iv_loghandle ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD set_probclass_for_msgtype.
+    mo_ewm_log->set_probclass_for_msgtype( iv_msgty  = iv_msgty
+                                           iv_probcl = iv_probclass ).
+  ENDMETHOD.
+
+  METHOD set_rowid.
+    IF me->mo_std_log IS NOT BOUND.
+      me->mo_ewm_log->set_rowid( iv_rowid ).
+    ELSE.
+      me->mo_std_log->set_rowid( iv_rowid = iv_rowid ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD add_message_with_detail_data.
+    " TODO: parameter IV_PROBCL is never used (ABAP cleaner)
+
+************************************************************************
+*
+* Method:     ADD_MESSAGE_WITH_DETAIL_DATA
+* Class:      /PRIS/EWM_CL_APPLOG
+* Package:    /PRIS/EWM_CORE
+* ID:         BASE001b - Wrapper Class
+*
+* Function:   Include Message in Log with Detail Data
+*
+* Descr.:     -
+*
+************************************************************************
+* Company:    prismat GmbH
+* Author:     Pierre-René Michel
+* Date:       08.07.2025
+* ----------------------------------------------------------------------
+* Changed by:
+* Date:
+* ID:
+* Reason:
+************************************************************************
+    IF me->mo_std_log IS NOT BOUND.
+      mo_ewm_log->add_message( iv_msgty       = iv_msgty
+                               iv_msgid       = iv_msgid
+                               iv_msgno       = iv_msgno
+                               iv_msgv1       = iv_msgv1
+                               iv_msgv2       = iv_msgv2
+                               iv_msgv3       = iv_msgv3
+                               iv_msgv4       = iv_msgv4
+                               iv_msg         = iv_msg
+                               iv_detail_type = iv_detail_type
+                               ip_detail_data = ip_detail_data ).
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.
