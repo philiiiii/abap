@@ -1,0 +1,15 @@
+@EndUserText.label : 'Autostore Dialog: Packing stations'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #ALLOWED
+define table  zewm_asd_workst {
+
+  key mandt       : mandt not null;
+  key lgnum       : /scwm/lgnum not null;
+  key workstation : /scwm/de_workstation not null;
+  port_id         : zewm_de_asb_port;
+  park_lgpla      : zewm_de_asd_park_bin;
+  as_lgtyp        : zewm_de_asd_port_lgtyp;
+
+}
