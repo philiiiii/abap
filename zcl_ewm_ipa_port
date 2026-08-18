@@ -64,3 +64,13 @@ CLASS zcl_ewm_ipa_port IMPLEMENTATION.
       INTO @DATA(ls_workstation)
       UP TO 1 ROWS.
     ENDSELECT.
+    IF sy-subrc <> 0.
+      MESSAGE e066(zewm_ipa) WITH if_port_id INTO lf_msg.
+      mo_log->add_message( ).
+      mo_log->add_program_info( iv_end = abap_true ).
+      " Port als Fehlerkontext mitgeben - decide uebernimmt ihn nach
+      " AS_ERR_INFO, sonst bliebe der Dialogtext ohne Portangabe.
+      RAISE EXCEPTION TYPE zcx_ewm_ipa
+            MESSAGE e066(zewm_ipa) WITH if_port_id
+            EXPORTING if_as_err_info = CONV zewm_ipa_as_err_info( if_port_id ).
+    ENDIF.
