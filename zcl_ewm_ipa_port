@@ -6,3 +6,36 @@ CLASS zcl_ewm_ipa_port DEFINITION
 
     METHODS constructor IMPORTING if_lgnum TYPE /scwm/lgnum
                                   io_log   TYPE REF TO zcl_ewm_applog.
+
+    ALIASES open_port     FOR zif_ewm_ipa_port~open_port.
+    ALIASES open_bin      FOR zif_ewm_ipa_port~open_bin.
+    ALIASES get_bin_state FOR zif_ewm_ipa_port~get_bin_state.
+    ALIASES close_bin     FOR zif_ewm_ipa_port~close_bin.
+    ALIASES close_port    FOR zif_ewm_ipa_port~close_port.
+
+  PROTECTED SECTION.
+    TYPES:
+      BEGIN OF ts_asb,
+        lgnum    TYPE /scwm/lgnum,
+        port_id  TYPE zewm_de_ipa_port_id,
+        instance TYPE REF TO zcl_ewm_asb_base,
+      END OF ts_asb.
+
+    DATA mf_lgnum TYPE /scwm/lgnum.
+    DATA mo_log   TYPE REF TO zcl_ewm_applog.
+    DATA mt_asb   TYPE HASHED TABLE OF ts_asb WITH UNIQUE KEY lgnum port_id.
+
+    METHODS get_asb
+      IMPORTING if_lgnum      TYPE /scwm/lgnum
+                if_port_id    TYPE zewm_de_ipa_port_id
+      RETURNING VALUE(ro_asb) TYPE REF TO zcl_ewm_asb_base
+      RAISING   zcx_ewm_ipa.
+
+    METHODS raise_asb
+      IMPORTING if_port_id  TYPE zewm_de_ipa_port_id
+                if_code     TYPE zewm_de_ipa_as_err_code OPTIONAL
+                io_previous TYPE REF TO cx_root       OPTIONAL
+      RAISING   zcx_ewm_ipa.
+
+  PRIVATE SECTION.
+ENDCLASS.
