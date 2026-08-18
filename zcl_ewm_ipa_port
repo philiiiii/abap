@@ -4,7 +4,7 @@ CLASS zcl_ewm_ipa_port DEFINITION
   PUBLIC SECTION.
     INTERFACES zif_ewm_ipa_port.
 
-    METHODS constructor IMPORTING if_lgnum TYPE /scwm/lgnum
+    METHODS constructor IMPORTING iv_lgnum TYPE /scwm/lgnum
                                   io_log   TYPE REF TO zcl_ewm_applog.
 
     ALIASES open_port     FOR zif_ewm_ipa_port~open_port.
@@ -21,13 +21,13 @@ CLASS zcl_ewm_ipa_port DEFINITION
         instance TYPE REF TO zcl_ewm_asb_base,
       END OF ts_asb.
 
-    DATA mf_lgnum TYPE /scwm/lgnum.
+    DATA mv_lgnum TYPE /scwm/lgnum.
     DATA mo_log   TYPE REF TO zcl_ewm_applog.
     DATA mt_asb   TYPE HASHED TABLE OF ts_asb WITH UNIQUE KEY lgnum port_id.
 
     METHODS get_asb
-      IMPORTING if_lgnum      TYPE /scwm/lgnum
-                if_port_id    TYPE zewm_de_ipa_port_id
+      IMPORTING iv_lgnum      TYPE /scwm/lgnum
+                iv_port_id    TYPE zewm_de_ipa_port_id
       RETURNING VALUE(ro_asb) TYPE REF TO zcl_ewm_asb_base
       RAISING   zcx_ewm_ipa.
 
@@ -39,3 +39,28 @@ CLASS zcl_ewm_ipa_port DEFINITION
 
   PRIVATE SECTION.
 ENDCLASS.
+
+CLASS zcl_ewm_ipa_port IMPLEMENTATION.
+  METHOD constructor.
+    mv_lgnum = iv_lgnum.
+    mo_log = io_log.
+  ENDMETHOD.
+
+  METHOD get_asb.
+    mo_log->add_program_info( iv_end = abap_false ).
+
+    ASSIGN mt_asb[ lgnum   = iv_lgnum
+                   port_id = iv_port_id ] TO FIELD-SYMBOL(<ls_asb>).
+    IF sy-subrc = 0.
+      ro_asb = <ls_asb>-instance.
+      mo_log->add_program_info( iv_end = abap_true ).
+      RETURN.
+    ENDIF.
+
+    SELECT as_lgtyp, workstation FROM zewm_ipa_i_asd_workst
+      WHERE lgnum   = @if_lgnum
+        AND port_id = @if_port_id
+      ORDER BY workstation
+      INTO @DATA(ls_workstation)
+      UP TO 1 ROWS.
+    ENDSELECT.
