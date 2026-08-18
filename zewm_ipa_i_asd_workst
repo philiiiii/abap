@@ -1,0 +1,13 @@
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'IPA: AutoStore-Portdefinition (1:1)'
+@Metadata.ignorePropagatedAnnotations: true
+define view entity ZEWM_IPA_I_ASD_WORKST
+  as select from zewm_asd_workst
+{
+  key lgnum,
+  key workstation,
+      port_id,
+      park_lgpla,
+      as_lgtyp
+}
